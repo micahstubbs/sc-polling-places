@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html;charset=utf-8'/>
+<title>SC Polling Places</title>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
+<script src="https://d3js.org/d3-queue.v2.min.js"></script>
+<script src="https://d3js.org/d3.v4.js"></script>
+  <!-- D3-voronoi with .find(x,y) --> 
+<script src="d3-voronoi.min.js"></script>
+<script src='d3-voronoi-scatterplot.js'></script>
+  <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:700,400,300' rel='stylesheet' type='text/css'>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<style>
+	body {
+	  font-family: 'Open Sans', sans-serif;
+	  font-size: 12px;
+	  font-weight: 400;
+	  color: #525252;
+	  text-align: center;
+	}
+	html, body { 
+		width:auto; 
+		height:auto; 
+	}
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: #B3B3B3;
+		shape-rendering: crispEdges;
+	}
+	.axis text {
+		font-size: 10px;
+		fill: #6B6B6B;
+	}
+</style>
+</head>
+<body>
+	<div id='cont' class='container-fluid text-center'>
+		<div class='row scatter'>
+			<div>
+				<div id='chart'></div>
+      </div>
+	</div>
+<script lang='babel' type='text/babel'>
+  var queue = d3_queue.queue();
+
+  queue
+    .defer(d3.json, "south-carolina-general-election-polling-locations-lon-lat.json")
+    .await(ready);
+
+	function ready(error, data) {
+    // const subsets = {
+    //   0: subset0,
+    //   1: subset1,
+    //   2: subset2,
+    //   3: subset3
+    // };
+
+    const xVariable = 'lon';
+    const yVariable = 'lat';
+
+		const tooltipColumns = [
+    	{
+    	  name: 'location_name'
+    	},
+    	{
+    	  name: 'city'
+    	},
+    	{
+    	  name: 'zip'
+    	},
+      {
+        name: 'id'
+      }
+  	];
+
+  	const numericColumns = [
+  		'lon',
+  		'lat',
+  	];
+
+  	const marks = {
+    	r: 2,
+    	fillOpacity: 0.3,
+    	colors: [
+    	  '#1f78b4',
+    	  '#ff7f00',
+    	  '#33a02c',
+    	  '#e31a1c',
+    	  '#6a3d9a',
+    	  '#b15928',
+    	  '#a6cee3',
+    	  '#fdbf6f',
+    	  '#b2df8a',
+    	  '#fb9a99',
+    	  '#cab2d6',
+    	  '#ffff99'
+    	]
+  	};
+
+  	const categoricalColumns = [
+  		'City'
+  	];
+
+		const options = {
+      width: 960,
+      height: 900,
+      xVariable,
+      yVariable,
+      yScaleType: 'linear',
+      // yScaleExponent: 3,
+      idVariable: 'id',
+      groupByVariable: undefined,
+      tooltipColumns,
+      numericColumns,
+      // xLabelDetail: 'Country',
+      wrapperId: 'sc_polling_places',
+      // wrapperLabel: 'example 02',
+      // dependent: true,
+      // globalExtents,
+      marks,
+      categoricalColumns,
+      xDroplineTextFormat: ',.0f'
+    }
+
+    console.log('d3VoronoiScatterplot', d3VoronoiScatterplot);
+    const update = d3VoronoiScatterplot.drawVoronoiScatterplot('#chart', data, options);
+    // console.log('update', update);
+
+    // update(subset2);
+    
+    function getGlobalExtents(datasets, options) {
+      // find max extent across all datasets
+      const xVariable = options.xVariable;
+      const yVariable = options.yVariable;
+      const globalExtents = [
+        [0, 0], // global xVariable Predict extent
+        [0, 0]  // global yVariable Residual extent 
+      ];
+      Object.keys(datasets).forEach((key) => {
+        const currentDataset = datasets[key];
+        [xVariable, yVariable].forEach((variable, i) => {
+          const currentExtent = d3.extent(currentDataset, d => Number(d[variable]));
+          // update global min
+          if (currentExtent[0] < globalExtents[i][0]) {
+            globalExtents[i][0] = currentExtent[0];
+          }
+          // update the global max
+          if (currentExtent[1] > globalExtents[i][1]) {
+            globalExtents[i][1] = currentExtent[1];
+          }
+        })
+      })
+      return globalExtents;
+    }
+	}
+</script>
+</body>
+</html>
